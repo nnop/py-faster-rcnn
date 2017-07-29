@@ -14,7 +14,7 @@ export PYTHONUNBUFFERED="True"
 
 GPU_ID=$1
 NET=$2
-NET_lc=${NET,,}
+# NET_lc=${NET,,}
 DATASET=$3
 
 array=( $@ )
@@ -49,6 +49,8 @@ time ./tools/train_faster_rcnn_alt_opt.py --gpu ${GPU_ID} \
   --imdb ${TRAIN_IMDB} \
   --cfg experiments/cfgs/faster_rcnn_alt_opt.yml \
   ${EXTRA_ARGS}
+
+exit
 
 set +x
 NET_FINAL=`grep "Final model:" ${LOG} | awk '{print $3}'`
