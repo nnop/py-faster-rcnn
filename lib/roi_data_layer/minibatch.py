@@ -12,6 +12,7 @@ import numpy.random as npr
 import cv2
 from fast_rcnn.config import cfg
 from utils.blob import prep_im_for_blob, im_list_to_blob
+import ipdb
 
 def get_minibatch(roidb, num_classes):
     """Given a roidb, construct a minibatch sampled from it."""
@@ -97,7 +98,7 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     # Sample foreground regions without replacement
     if fg_inds.size > 0:
         fg_inds = npr.choice(
-                fg_inds, size=fg_rois_per_this_image, replace=False)
+                fg_inds, size=int(fg_rois_per_this_image), replace=False)
 
     # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
     bg_inds = np.where((overlaps < cfg.TRAIN.BG_THRESH_HI) &
@@ -110,14 +111,14 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     # Sample foreground regions without replacement
     if bg_inds.size > 0:
         bg_inds = npr.choice(
-                bg_inds, size=bg_rois_per_this_image, replace=False)
+                bg_inds, size=int(bg_rois_per_this_image), replace=False)
 
     # The indices that we're selecting (both fg and bg)
     keep_inds = np.append(fg_inds, bg_inds)
     # Select sampled values from various arrays:
     labels = labels[keep_inds]
     # Clamp labels for the background RoIs to 0
-    labels[fg_rois_per_this_image:] = 0
+    labels[int(fg_rois_per_this_image):] = 0
     overlaps = overlaps[keep_inds]
     rois = rois[keep_inds]
 
@@ -165,7 +166,7 @@ def _get_bbox_regression_labels(bbox_target_data, num_classes):
         bbox_target_data (ndarray): N x 4K blob of regression targets
         bbox_inside_weights (ndarray): N x 4K blob of loss weights
     """
-    clss = bbox_target_data[:, 0]
+    clss = bbox_target_data[:, 0].astype('int32')
     bbox_targets = np.zeros((clss.size, 4 * num_classes), dtype=np.float32)
     bbox_inside_weights = np.zeros(bbox_targets.shape, dtype=np.float32)
     inds = np.where(clss > 0)[0]
