@@ -7,7 +7,7 @@ from fast_rcnn.config import cfg
 from datasets.imdb import imdb
 from pascal_voc import pascal_voc 
 
-class FtBody(pascal_voc):
+class ft_body(pascal_voc):
     def __init__(self, image_set, data_path=None):
         imdb.__init__(self, 'ft_body_'+image_set)
         self._image_set = image_set
@@ -49,13 +49,20 @@ class FtBody(pascal_voc):
         gt_classes = np.zeros((num_objs,), dtype=np.int32)
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
 
+        # image meta info
+        size_obj = tree.find('size')
+        im_wid = (size_obj.find('width').text)
+        im_hei = (size_obj.find('height').text)
+        im_dep = (size_obj.find('depth').text)
+        filename = tree.find('filename').text
+
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text) - 1
-            y1 = float(bbox.find('ymin').text) - 1
-            x2 = float(bbox.find('xmax').text) - 1
-            y2 = float(bbox.find('ymax').text) - 1
+            x1 = float(bbox.find('xmin').text)
+            y1 = float(bbox.find('ymin').text)
+            x2 = float(bbox.find('xmax').text)
+            y2 = float(bbox.find('ymax').text)
             assert x1 < x2 and y1 < y2, \
                     '{} {}'.format(idx+'.xml', [x1, y1, x2, y2])
             cls_name = obj.find('name').text.lower().strip()
@@ -66,8 +73,11 @@ class FtBody(pascal_voc):
         overlaps = scipy.sparse.csr_matrix(overlaps)
 
         return {'boxes' : boxes,
+                'width': im_wid,
+                'height': im_hei,
+                'filename': filename,
                 'gt_classes': gt_classes,
-                'gt_overlaps' : overlaps,
-                'flipped' : False}
+                'gt_overlaps': overlaps,
+                'flipped': False}
 
 
