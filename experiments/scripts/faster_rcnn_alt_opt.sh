@@ -50,8 +50,6 @@ time ./tools/train_faster_rcnn_alt_opt.py --gpu ${GPU_ID} \
   --cfg experiments/cfgs/faster_rcnn_alt_opt.yml \
   ${EXTRA_ARGS}
 
-exit
-
 set +x
 NET_FINAL=`grep "Final model:" ${LOG} | awk '{print $3}'`
 set -x
