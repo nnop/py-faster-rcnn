@@ -45,25 +45,25 @@ class ft_body(pascal_voc):
         tree = ET.parse(anno_p)
         objs = tree.findall('object')
         num_objs = len(objs)
-        boxes = np.zeros((num_objs, 4), dtype=np.uint16)
+        boxes = np.zeros((num_objs, 4), dtype=np.float32)
         gt_classes = np.zeros((num_objs,), dtype=np.int32)
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
 
         # image meta info
         size_obj = tree.find('size')
-        im_wid = (size_obj.find('width').text)
-        im_hei = (size_obj.find('height').text)
-        im_dep = (size_obj.find('depth').text)
+        im_wid = int(size_obj.find('width').text)
+        im_hei = int(size_obj.find('height').text)
+        im_dep = int(size_obj.find('depth').text)
         filename = tree.find('filename').text
 
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text)
-            y1 = float(bbox.find('ymin').text)
-            x2 = float(bbox.find('xmax').text)
-            y2 = float(bbox.find('ymax').text)
-            assert x1 < x2 and y1 < y2, \
+            x1 = float(bbox.find('xmin').text) - 1
+            y1 = float(bbox.find('ymin').text) - 1
+            x2 = float(bbox.find('xmax').text) - 1
+            y2 = float(bbox.find('ymax').text) - 1
+            assert 0 <= x1 < x2 < im_wid and 0 <= y1 < y2 < im_hei, \
                     '{} {}'.format(idx+'.xml', [x1, y1, x2, y2])
             cls_name = obj.find('name').text.lower().strip()
             cls = self._class_to_ind[cls_name]
