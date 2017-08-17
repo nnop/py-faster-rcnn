@@ -4,6 +4,7 @@ import numpy as np
 import scipy
 
 from fast_rcnn.config import cfg
+from fast_rcnn.bbox_transform import clip_boxes
 from datasets.imdb import imdb
 from pascal_voc import pascal_voc 
 
@@ -63,13 +64,14 @@ class ft_body(pascal_voc):
             y1 = float(bbox.find('ymin').text) - 1
             x2 = float(bbox.find('xmax').text) - 1
             y2 = float(bbox.find('ymax').text) - 1
-            assert 0 <= x1 < x2 < im_wid and 0 <= y1 < y2 < im_hei, \
-                    '{} {}'.format(idx+'.xml', [x1, y1, x2, y2])
+            # assert 0 <= x1 < x2 <= im_wid and 0 <= y1 < y2 <= im_hei, \
+            #         '{} (h:{}, w:{}) {}'.format(idx+'.xml', im_hei, im_wid, [x1, y1, x2, y2])
             cls_name = obj.find('name').text.lower().strip()
             cls = self._class_to_ind[cls_name]
             boxes[ix, :] = [x1, y1, x2, y2]
             gt_classes[ix] = cls
             overlaps[ix, cls] = 1.0
+        boxes = clip_boxes(boxes, (im_hei, im_wid))
         overlaps = scipy.sparse.csr_matrix(overlaps)
 
         return {'boxes' : boxes,
