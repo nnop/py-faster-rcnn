@@ -32,7 +32,9 @@ for year in ['2015']:
         name = 'coco_{}_{}'.format(year, split)
         __sets[name] = (lambda split=split, year=year: coco(split, year))
 
-__sets['ft_body'] = (lambda split='train': ft_body(split))
+for split in ['train', 'test']:
+    name = 'ft_body_{}'.format(split)
+    __sets[name] = (lambda split=split: ft_body(split))
 
 def get_imdb(name):
     """Get an imdb (image database) by name."""
