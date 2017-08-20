@@ -12,6 +12,7 @@ __sets = {}
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
 from datasets.ft_body import ft_body
+from datasets.ft_union import ft_union
 import numpy as np
 
 # Set up voc_<year>_<split> using selective search "fast" mode
@@ -35,6 +36,11 @@ for year in ['2015']:
 for split in ['train', 'test']:
     name = 'ft_body_{}'.format(split)
     __sets[name] = (lambda split=split: ft_body(split))
+
+for split in ['train', 'test']:
+    name = 'ft_union_{}'.format(split)
+    __sets[name] = (lambda split=split: ft_union(split))
+
 
 def get_imdb(name):
     """Get an imdb (image database) by name."""

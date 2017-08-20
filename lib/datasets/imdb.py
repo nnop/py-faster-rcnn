@@ -113,6 +113,8 @@ class imdb(object):
                      'gt_overlaps' : self.roidb[i]['gt_overlaps'],
                      'gt_classes' : self.roidb[i]['gt_classes'],
                      'flipped' : True}
+            if 'pose_classes' in self.roidb[i]:
+                entry['pose_classes'] = self.roidb[i]['pose_classes']
             self.roidb.append(entry)
         self._image_index = self._image_index * 2
 
