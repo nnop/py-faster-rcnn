@@ -102,7 +102,7 @@ class RoIDataLayer(caffe.Layer):
             self._name_to_top_map['im_info'] = idx
             idx += 1
 
-            top[idx].reshape(1, 4)
+            top[idx].reshape(1, 5)
             self._name_to_top_map['gt_boxes'] = idx
             idx += 1
         else: # not using RPN
