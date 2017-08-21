@@ -181,7 +181,11 @@ def im_detect(net, im, boxes=None):
         scores = scores[inv_index, :]
         pred_boxes = pred_boxes[inv_index, :]
 
-    return scores, pred_boxes
+    if 'pose_cls_prob' in blobs_out:
+        pose_scores = blobs_out['pose_cls_prob']
+        return scores, pred_boxes, pose_scores
+    else:
+        return scores, pred_boxes
 
 def vis_detections(im, class_name, dets, thresh=0.3):
     """Visual debugging of detections."""
