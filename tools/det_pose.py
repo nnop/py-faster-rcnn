@@ -14,6 +14,7 @@ See README.md for installation instructions before running.
 """
 
 import matplotlib
+matplotlib.use('Agg')
 import _init_paths
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
@@ -64,7 +65,7 @@ def demo(net, im_file):
     # Load the demo image
     im = cv2.imread(im_file)
     im = im[:, :, (2, 1, 0)]
-    # fig = plt.figure(figsize=(18, 12))
+    fig = plt.figure(figsize=(18, 12))
     plt.imshow(im, aspect='equal')
 
     # Detect all object classes and regress object bounds
@@ -99,7 +100,7 @@ if __name__ == '__main__':
     im_file = sys.argv[1]
 
     prototxt = 'models/ft_union/VGG16/faster_rcnn_end2end/test.prototxt'
-    caffemodel = 'output/union_end2end_dev/vgg16_end2end_iter_50000.caffemodel'
+    caffemodel = 'output/union_end2end/ft_union_train/vgg16_end2end_iter_70000.caffemodel'
 
     caffe.set_mode_gpu()
     caffe.set_device(0)
