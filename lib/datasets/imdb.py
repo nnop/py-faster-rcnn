@@ -113,8 +113,19 @@ class imdb(object):
                      'gt_overlaps' : self.roidb[i]['gt_overlaps'],
                      'gt_classes' : self.roidb[i]['gt_classes'],
                      'flipped' : True}
+            # add pose
             if 'pose_classes' in self.roidb[i]:
                 entry['pose_classes'] = self.roidb[i]['pose_classes']
+            # add head, take [0, 0, 0, 0] into account
+            if 'head_boxes' in self.roidb[i]:
+                head_boxes = self.roidb[i]['head_boxes'].copy()
+                head_inds = np.where(np.all(head_boxes, axis=1))[0]
+                oldx1 = head_boxes[head_inds, 0].copy()
+                oldx2 = head_boxes[head_inds, 2].copy()
+                head_boxes[head_inds, 0] = widths[i] - oldx2 - 1
+                head_boxes[head_inds, 2] = widths[i] - oldx1 - 1
+                assert (head_boxes[head_inds, 2] >= head_boxes[head_inds, 0]).all()
+                entry['head_boxes'] = head_boxes
             self.roidb.append(entry)
         self._image_index = self._image_index * 2
 

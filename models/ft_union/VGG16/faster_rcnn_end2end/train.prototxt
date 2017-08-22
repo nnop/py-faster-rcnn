@@ -6,6 +6,7 @@ layer {
   top: 'data'
   top: 'im_info'
   top: 'gt_boxes'
+  top: 'gt_head_boxes'
   python_param {
     module: 'pose_roi_data_layer.layer'
     layer: 'PoseRoIDataLayer'
@@ -519,12 +520,16 @@ layer {
   type: 'Python'
   bottom: 'rpn_rois'
   bottom: 'gt_boxes'
+  bottom: 'gt_head_boxes'
   top: 'rois'
   top: 'labels'
   top: 'bbox_targets'
   top: 'bbox_inside_weights'
   top: 'bbox_outside_weights'
   top: 'pose_labels'
+  top: 'head_bbox_targets'
+  top: 'head_bbox_inside_weights'
+  top: 'head_bbox_outside_weights'
   python_param {
     module: 'rpn.pose_proposal_target_layer'
     layer: 'PoseProposalTargetLayer'
@@ -717,6 +722,42 @@ layer {
     ignore_label: -1
     normalize: true
   }
+}
+# }}}
+
+# head bbox head {{{
+layer {
+  name: "head_bbox_pred"
+  type: "InnerProduct"
+  bottom: "fc7"
+  top: "head_bbox_pred"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 4
+    weight_filler {
+      type: "gaussian"
+      std: 0.001
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "head_loss_bbox"
+  type: "SmoothL1Loss"
+  bottom: "head_bbox_pred"
+  bottom: "head_bbox_targets"
+  bottom: "head_bbox_inside_weights"
+  bottom: "head_bbox_outside_weights"
+  top: "loss_head_bbox"
+  loss_weight: 1
 }
 # }}}
 

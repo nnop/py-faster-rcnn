@@ -91,6 +91,12 @@ class PoseRoIDataLayer(caffe.Layer):
             top[idx].reshape(1, 6)
             self._name_to_top_map['gt_boxes'] = idx
             idx += 1
+
+            if len(top) == 4:
+                # (x1, y1, x2, y2)
+                top[idx].reshape(1, 4)
+                self._name_to_top_map['gt_head_boxes'] = idx
+                idx += 1
         else:
             raise NotImplementedError('only support end-to-end training')
 

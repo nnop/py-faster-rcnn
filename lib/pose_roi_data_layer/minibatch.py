@@ -44,6 +44,10 @@ def get_pose_minibatch(roidb):
         blobs['im_info'] = np.array(
             [[im_blob.shape[2], im_blob.shape[3], im_scales[0]]],
             dtype=np.float32)
+        # head boxes rescale
+        if 'head_boxes' in roidb[0]:
+            head_boxes = roidb[0]['head_boxes'][gt_inds, :] * im_scales[0]
+            blobs['gt_head_boxes'] = head_boxes
     else:
         assert NotImplementedError('only support end-to-end training')
 

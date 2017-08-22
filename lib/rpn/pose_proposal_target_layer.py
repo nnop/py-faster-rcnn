@@ -37,6 +37,12 @@ class PoseProposalTargetLayer(caffe.Layer):
         top[4].reshape(1, self._num_classes * 4)
         # pose_labels
         top[5].reshape(1, 1)
+        # head_bbox_targets
+        top[6].reshape(1, 4)
+        # head_bbox_inside_weights
+        top[7].reshape(1, 4)
+        # head_bbox_outside_weights
+        top[8].reshape(1, 4)
 
     def forward(self, bottom, top):
         # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
@@ -46,6 +52,7 @@ class PoseProposalTargetLayer(caffe.Layer):
         # TODO(rbg): it's annoying that sometimes I have extra info before
         # and other times after box coordinates -- normalize to one format
         gt_boxes = bottom[1].data
+        gt_head_boxes = bottom[2].data
 
         # Include ground-truth boxes in the set of candidate rois
         zeros = np.zeros((gt_boxes.shape[0], 1), dtype=gt_boxes.dtype)
@@ -63,8 +70,9 @@ class PoseProposalTargetLayer(caffe.Layer):
 
         # Sample rois with classification labels and bounding box regression
         # targets
-        labels, rois, bbox_targets, bbox_inside_weights, pose_labels = _sample_rois(
-            all_rois, gt_boxes, fg_rois_per_image,
+        labels, rois, bbox_targets, bbox_inside_weights, pose_labels, \
+                head_bbox_targets, head_bbox_inside_weights = _sample_rois(
+            all_rois, gt_boxes, gt_head_boxes, fg_rois_per_image,
             rois_per_image, self._num_classes)
 
         if DEBUG:
@@ -100,6 +108,18 @@ class PoseProposalTargetLayer(caffe.Layer):
         # pose_labels
         top[5].reshape(*pose_labels.shape)
         top[5].data[...] = pose_labels
+
+        # head_bbox_targets
+        top[6].reshape(*head_bbox_targets.shape)
+        top[6].data[...] = head_bbox_targets
+
+        # bbox_inside_weights
+        top[7].reshape(*head_bbox_inside_weights.shape)
+        top[7].data[...] = head_bbox_inside_weights
+
+        # bbox_outside_weights
+        top[8].reshape(*head_bbox_inside_weights.shape)
+        top[8].data[...] = np.array(head_bbox_inside_weights > 0).astype(np.float32)
 
     def backward(self, top, propagate_down, bottom):
         """This layer does not propagate gradients."""
@@ -150,7 +170,8 @@ def _compute_targets(ex_rois, gt_rois, labels):
     return np.hstack(
             (labels[:, np.newaxis], targets)).astype(np.float32, copy=False)
 
-def _sample_rois(all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_classes):
+def _sample_rois(all_rois, gt_boxes, gt_head_boxes, fg_rois_per_image, \
+        rois_per_image, num_classes):
     """Generate a random sample of RoIs comprising foreground and background
     examples.
     """
@@ -193,11 +214,24 @@ def _sample_rois(all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_clas
     # Ignore background rois for pose
     pose_labels[fg_rois_per_this_image:] = -1
     rois = all_rois[keep_inds]
+    gt_inds = gt_assignment[keep_inds]
 
     bbox_target_data = _compute_targets(
-        rois[:, 1:5], gt_boxes[gt_assignment[keep_inds], :4], labels)
+        rois[:, 1:5], gt_boxes[gt_inds, :4], labels)
 
     bbox_targets, bbox_inside_weights = \
         _get_bbox_regression_labels(bbox_target_data, num_classes)
 
-    return labels, rois, bbox_targets, bbox_inside_weights, pose_labels
+    # Regress head boxes
+    head_labels = np.ones((len(rois)), dtype=np.float32)
+    head_labels[np.all(gt_head_boxes[gt_inds] == 0, axis=1)] = 0
+    head_labels[fg_rois_per_this_image:] = 0
+
+    head_bbox_target_data = _compute_targets(rois[:, 1:5],
+            gt_head_boxes[gt_inds, :4], head_labels)
+
+    head_bbox_targets, head_bbox_inside_weights = \
+        _get_bbox_regression_labels(head_bbox_target_data, 2)
+
+    return labels, rois, bbox_targets, bbox_inside_weights, pose_labels, \
+            head_bbox_targets, head_bbox_inside_weights

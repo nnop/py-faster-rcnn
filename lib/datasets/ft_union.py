@@ -132,6 +132,7 @@ class ft_union(imdb):
         num_objs = len(objs)
 
         boxes = np.zeros((num_objs, 4), dtype=np.float32)
+        head_boxes = np.zeros((num_objs, 4), dtype=np.float32)
         gt_classes = np.zeros((num_objs), dtype=np.int32)
         pose_classes = np.zeros((num_objs), dtype=np.int32)
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
@@ -145,17 +146,21 @@ class ft_union(imdb):
             # pose
             pose_cls = self._pose_class_to_ind[obj['body']['label']]
             pose_classes[ix] = pose_cls
+            # head, if not have 'head', the value would be [0, 0, 0, 0]
+            if 'head' in obj and 'bbox' in obj['head']:
+                head_boxes[ix, :] = obj['head']['bbox']
         overlaps = scipy.sparse.csr_matrix(overlaps)
 
         im_wid = info['image']['width']
         im_hei = info['image']['height']
         boxes = clip_boxes(boxes, (im_hei, im_wid))
 
-        return {'boxes' : boxes,
+        return {'boxes': boxes,
                 'gt_classes': gt_classes,
                 'gt_overlaps' : overlaps,
                 'pose_classes': pose_classes,
-                'flipped' : False}
+                'head_boxes': head_boxes,
+                'flipped': False}
 
     def _get_comp_id(self):
         comp_id = (self._comp_id + '_' + self._salt if self.config['use_salt']
