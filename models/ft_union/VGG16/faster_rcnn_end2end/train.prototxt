@@ -513,7 +513,7 @@ layer {
 
 #========= RCNN ============
 
-# ProposalTargetLayer {{{
+# PoseProposalTargetLayer {{{
 layer {
   name: 'roi-data'
   type: 'Python'

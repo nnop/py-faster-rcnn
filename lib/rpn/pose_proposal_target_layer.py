@@ -50,7 +50,7 @@ class PoseProposalTargetLayer(caffe.Layer):
         # Include ground-truth boxes in the set of candidate rois
         zeros = np.zeros((gt_boxes.shape[0], 1), dtype=gt_boxes.dtype)
         all_rois = np.vstack(
-            (all_rois, np.hstack((zeros, gt_boxes[:, :-2])))
+            (all_rois, np.hstack((zeros, gt_boxes[:, :4])))
         )
 
         # Sanity check: single batch only
