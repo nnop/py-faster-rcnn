@@ -119,7 +119,7 @@ class imdb(object):
             # add head, take [0, 0, 0, 0] into account
             if 'head_boxes' in self.roidb[i]:
                 head_boxes = self.roidb[i]['head_boxes'].copy()
-                head_inds = np.where(np.all(head_boxes, axis=1))[0]
+                head_inds = np.where(np.any(head_boxes, axis=1))[0]
                 oldx1 = head_boxes[head_inds, 0].copy()
                 oldx2 = head_boxes[head_inds, 2].copy()
                 head_boxes[head_inds, 0] = widths[i] - oldx2 - 1

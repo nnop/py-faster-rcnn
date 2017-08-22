@@ -38,11 +38,11 @@ class PoseProposalTargetLayer(caffe.Layer):
         # pose_labels
         top[5].reshape(1, 1)
         # head_bbox_targets
-        top[6].reshape(1, 4)
+        top[6].reshape(1, 8)
         # head_bbox_inside_weights
-        top[7].reshape(1, 4)
+        top[7].reshape(1, 8)
         # head_bbox_outside_weights
-        top[8].reshape(1, 4)
+        top[8].reshape(1, 8)
 
     def forward(self, bottom, top):
         # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
