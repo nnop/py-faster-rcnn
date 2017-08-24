@@ -61,12 +61,15 @@ class SolverWrapper(object):
 
         scale_bbox_params = (cfg.TRAIN.BBOX_REG and
                              cfg.TRAIN.BBOX_NORMALIZE_TARGETS and
-                             net.params.has_key('bbox_pred'))
+                             net.params.has_key('bbox_pred') and
+                             net.params.has_key('head_bbox_pred'))
 
         if scale_bbox_params:
             # save original values
             orig_0 = net.params['bbox_pred'][0].data.copy()
             orig_1 = net.params['bbox_pred'][1].data.copy()
+            head_orig_0 = net.params['head_bbox_pred'][0].data.copy()
+            head_orig_1 = net.params['head_bbox_pred'][1].data.copy()
 
             # scale and shift with bbox reg unnormalization; then save snapshot
             net.params['bbox_pred'][0].data[...] = \
@@ -75,6 +78,17 @@ class SolverWrapper(object):
             net.params['bbox_pred'][1].data[...] = \
                     (net.params['bbox_pred'][1].data *
                      self.bbox_stds + self.bbox_means)
+            head_bbox_means = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_MEANS),
+                    (2, 1)).ravel()
+            head_bbox_stds = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_STDS),
+                    (2, 1)).ravel()
+            net.params['head_bbox_pred'][0].data[...] = \
+                    (net.params['head_bbox_pred'][0].data *
+                     head_bbox_stds[:, np.newaxis])
+            net.params['head_bbox_pred'][1].data[...] = \
+                    (net.params['head_bbox_pred'][1].data *
+                     head_bbox_stds + head_bbox_means)
+
 
         infix = ('_' + cfg.TRAIN.SNAPSHOT_INFIX
                  if cfg.TRAIN.SNAPSHOT_INFIX != '' else '')
@@ -89,6 +103,8 @@ class SolverWrapper(object):
             # restore net to original state
             net.params['bbox_pred'][0].data[...] = orig_0
             net.params['bbox_pred'][1].data[...] = orig_1
+            net.params['head_bbox_pred'][0].data[...] = head_orig_0
+            net.params['head_bbox_pred'][1].data[...] = head_orig_1
         return filename
 
     def train_model(self, max_iters):
