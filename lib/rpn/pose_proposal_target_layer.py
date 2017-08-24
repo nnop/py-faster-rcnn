@@ -53,6 +53,7 @@ class PoseProposalTargetLayer(caffe.Layer):
         # and other times after box coordinates -- normalize to one format
         gt_boxes = bottom[1].data
         gt_head_boxes = bottom[2].data
+        assert len(gt_boxes) == len(gt_head_boxes)
 
         # Include ground-truth boxes in the set of candidate rois
         zeros = np.zeros((gt_boxes.shape[0], 1), dtype=gt_boxes.dtype)
@@ -232,6 +233,7 @@ def _sample_rois(all_rois, gt_boxes, gt_head_boxes, fg_rois_per_image, \
 
     head_bbox_targets, head_bbox_inside_weights = \
         _get_bbox_regression_labels(head_bbox_target_data, 2)
+    assert not np.any(np.isnan(head_bbox_targets))
 
     return labels, rois, bbox_targets, bbox_inside_weights, pose_labels, \
             head_bbox_targets, head_bbox_inside_weights

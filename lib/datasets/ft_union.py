@@ -134,7 +134,8 @@ class ft_union(imdb):
         boxes = np.zeros((num_objs, 4), dtype=np.float32)
         head_boxes = np.zeros((num_objs, 4), dtype=np.float32)
         gt_classes = np.zeros((num_objs), dtype=np.int32)
-        pose_classes = np.zeros((num_objs), dtype=np.int32)
+        pose_classes = np.empty((num_objs), dtype=np.int32)
+        pose_classes[...] = -1
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
         # Load object bounding boxes into a data frame.
         for ix, obj in enumerate(objs):
@@ -144,16 +145,19 @@ class ft_union(imdb):
             gt_classes[ix] = cls
             overlaps[ix, cls] = 1.0
             # pose
-            pose_cls = self._pose_class_to_ind[obj['body']['label']]
-            pose_classes[ix] = pose_cls
+            pose_label = obj['body']['label']
+            if pose_label in self._pose_classes:
+                pose_cls = self._pose_class_to_ind[pose_label]
+                pose_classes[ix] = pose_cls
             # head, if not have 'head', the value would be [0, 0, 0, 0]
-            if 'head' in obj and 'bbox' in obj['head']:
+            if 'head' in obj and obj['head'] and 'bbox' in obj['head']:
                 head_boxes[ix, :] = obj['head']['bbox']
         overlaps = scipy.sparse.csr_matrix(overlaps)
 
         im_wid = info['image']['width']
         im_hei = info['image']['height']
         boxes = clip_boxes(boxes, (im_hei, im_wid))
+        head_boxes = clip_boxes(head_boxes, (im_hei, im_wid))
 
         return {'boxes': boxes,
                 'gt_classes': gt_classes,

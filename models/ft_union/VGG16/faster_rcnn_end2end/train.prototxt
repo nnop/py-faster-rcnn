@@ -646,6 +646,10 @@ layer {
   propagate_down: 0
   top: "loss_cls"
   loss_weight: 1
+  loss_param {
+    ignore_label: -1
+    normalize: true
+  }
 }
 # }}}
 
