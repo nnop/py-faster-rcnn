@@ -18,13 +18,15 @@ def draw_bbox(ax, bbox, text='', color='r', linewidth=1):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image-path', required=True)
-    parser.add_argument('--json-path', required=True)
+    parser.add_argument('--image', required=True)
+    parser.add_argument('--json', required=True)
+    args = parser.parse_args()
 
-    image_path = args.image_path
-    json_path = args.json_path
+    image_path = args.image
+    json_path = args.json
 
     im = cv2.imread(image_path)[:, :, [2, 1, 0]]
+    plt.figure(figsize=(15, 10))
     plt.imshow(im)
     with open(json_path) as f:
         info = json.load(f)
