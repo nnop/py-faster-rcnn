@@ -4,5 +4,7 @@
 lib/build
 lib/pycocotools/_mask.c
 lib/pycocotools/_mask.so
+tests/
+data/
 exps/
 output/
